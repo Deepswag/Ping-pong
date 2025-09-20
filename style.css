@@ -1,15 +1,1 @@
-body {
-  font-family: Arial, sans-serif;
-  text-align: center;
-  background-color: #001f4d; /* deep blue background */
-  color: #fff;
-  margin: 0;
-  padding: 0;
-}
 
-canvas {
-  border: 2px solid #fff;
-  display: block;
-  margin: 20px auto;
-  background-color: #001f4d;
-}
