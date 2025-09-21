@@ -77,6 +77,7 @@ function drawBricks(){
     }
   }
 }
+function drawWatermark();
 function drawScore(){ctx.fillStyle="#ffffff";ctx.font="20px Arial";ctx.fillText("Score: "+score,20,30);}
 function collisionDetection(){
   let bricksRemaining = 0; // counter for remaining bricks
