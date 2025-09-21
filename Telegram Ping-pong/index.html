@@ -10,17 +10,21 @@
 <div class="game-container">
   <canvas id="gameCanvas"></canvas>
 
-  <div id="startOverlay" class="overlay">
-    <button id="startBtn">Start Game</button>
-  </div>
+  <!-- Start overlay -->
+<div id="startOverlay" class="overlay">
+  <button id="startBtn">Start Game</button>
+  <button id="reloadBtn">Reload</button>
+</div>
 
-  <div id="gameOverOverlay" class="overlay">
-    <div class="popup-content">
-      <h2 id="finalScore">Game Over!</h2>
-      <button id="restartBtn">Restart</button>
-      <button id="exitBtn">Exit</button>
-    </div>
+<!-- Game over overlay -->
+<div id="gameOverOverlay" class="overlay" style="display:none;">
+  <div class="popup-content">
+    <h2 id="finalScore">Game Over!</h2>
+    <button id="restartBtn">Restart</button>
+    <button id="exitBtn">Exit</button>
   </div>
+</div>
+
 </div>
 <script src="game.js"></script>
 </body>
