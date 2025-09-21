@@ -1,45 +1,47 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// ======== Resize Handling ========
+// ========== Responsive Canvas ==========
 function resizeCanvas() {
-  canvas.width  = window.innerWidth * 0.95;
-  canvas.height = window.innerHeight * 0.75;
+  // Fit inside the viewport but keep a small margin
+  canvas.width  = Math.min(window.innerWidth * 0.95, 1200); // limit max width
+  canvas.height = Math.min(window.innerHeight * 0.8, 800);  // limit max height
 }
-
 resizeCanvas();
-window.addEventListener("resize", resizeCanvas);
+window.addEventListener("resize", () => {
+  resizeCanvas();
+  initBricks();
+});
 
-// ======== Ball ========
+// ========== Ball ==========
 let x = canvas.width / 2;
-let y = canvas.height - 30;
+let y = canvas.height - 40;
 let dx = 4;
 let dy = -4;
 const ballRadius = 10;
 
-// ======== Paddle ========
+// ========== Paddle ==========
 const paddleHeight = 12;
 const paddleWidth = 100;
 let paddleX = (canvas.width - paddleWidth) / 2;
 let rightPressed = false;
 let leftPressed = false;
 
-// ======== Score ========
+// ========== Score ==========
 let score = 0;
 
-// ======== Bricks ========
+// ========== Bricks ==========
 const brickRowCount = 7;
 const brickPadding = 10;
 const brickOffsetTop = 60;
 const brickOffsetLeft = 10;
 const brickHeight = 20;
-let brickColumnCount;   // dynamic
+let brickColumnCount;
 let brickWidth;
 let bricks = [];
 
 function initBricks() {
-  // Compute how many bricks fit across screen with padding
-  brickColumnCount = Math.floor((canvas.width - brickOffsetLeft * 2) / (60));
+  brickColumnCount = Math.floor((canvas.width - brickOffsetLeft * 2) / 60);
   brickWidth =
     (canvas.width - brickOffsetLeft * 2 - (brickColumnCount - 1) * brickPadding) /
     brickColumnCount;
@@ -48,42 +50,36 @@ function initBricks() {
   for (let r = 0; r < brickRowCount; r++) {
     bricks[r] = [];
     for (let c = 0; c < brickColumnCount; c++) {
-      bricks[r][c] = { x: 0, y: 0, status: 1 }; // status 1 = visible
+      bricks[r][c] = { x: 0, y: 0, status: 1 };
     }
   }
 }
 initBricks();
-window.addEventListener("resize", initBricks);
 
-// ======== Controls ========
-document.addEventListener("keydown", keyDownHandler);
-document.addEventListener("keyup", keyUpHandler);
-document.addEventListener("mousemove", mouseMoveHandler);
-document.addEventListener("touchmove", touchMoveHandler, { passive: false });
-
-function keyDownHandler(e) {
+// ========== Controls ==========
+document.addEventListener("keydown", e => {
   if (e.key === "Right" || e.key === "ArrowRight") rightPressed = true;
-  else if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = true;
-}
-function keyUpHandler(e) {
+  if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = true;
+});
+document.addEventListener("keyup", e => {
   if (e.key === "Right" || e.key === "ArrowRight") rightPressed = false;
-  else if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = false;
-}
-function mouseMoveHandler(e) {
+  if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = false;
+});
+document.addEventListener("mousemove", e => {
   const relativeX = e.clientX - canvas.getBoundingClientRect().left;
-  if (relativeX > 0 && relativeX < canvas.width) {
-    paddleX = relativeX - paddleWidth / 2;
-  }
-}
-function touchMoveHandler(e) {
+  if (relativeX > 0 && relativeX < canvas.width) paddleX = relativeX - paddleWidth / 2;
+});
+document.addEventListener("touchmove", e => {
   e.preventDefault();
   const touchX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
-  if (touchX > 0 && touchX < canvas.width) {
-    paddleX = touchX - paddleWidth / 2;
-  }
-}
+  if (touchX > 0 && touchX < canvas.width) paddleX = touchX - paddleWidth / 2;
+}, { passive: false });
 
-// ======== Draw Functions ========
+// ========== Draw Helpers ==========
+function drawBackground() {
+  ctx.fillStyle = "#001a66";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
 function drawBall() {
   ctx.beginPath();
   ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
@@ -118,71 +114,40 @@ function drawBricks() {
 function drawScore() {
   ctx.fillStyle = "#ffffff";
   ctx.font = "20px Arial";
+  ctx.textAlign = "left";
   ctx.fillText("Score: " + score, 20, 30);
 }
 
-// ======== Collision Detection ========
+// ========== Collision ==========
 function collisionDetection() {
   for (let r = 0; r < brickRowCount; r++) {
     for (let c = 0; c < brickColumnCount; c++) {
       const b = bricks[r][c];
       if (b.status === 1) {
-        if (
-          x > b.x &&
-          x < b.x + brickWidth &&
-          y > b.y &&
-          y < b.y + brickHeight
-        ) {
+        if (x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight) {
           dy = -dy;
           b.status = 0;
-          // scoring by row (Row1=2 .. Row7=8)
-          score += r + 2;
+          score += r + 2; // row-based scoring
         }
       }
     }
   }
 }
 
-// ======== Game Loop ========
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+// ========== Game Loop ==========
+let gameRunning = true;
 
+function draw() {
+  if (!gameRunning) return;
+
+  drawBackground();
   drawBricks();
   drawBall();
   drawPaddle();
   drawScore();
   collisionDetection();
 
-  // Bounce off side walls
+  // Wall collisions
   if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) dx = -dx;
-  // Bounce off top
   if (y + dy < ballRadius) dy = -dy;
-  // Paddle hit
-  else if (y + dy > canvas.height - ballRadius - paddleHeight - 10) {
-    if (x > paddleX && x < paddleX + paddleWidth) {
-      dy = -dy;
-      score += 1;
-    } else if (y + dy > canvas.height - ballRadius) {
-      gameOver();
-      return;
-    }
-  }
-
-  if (rightPressed && paddleX < canvas.width - paddleWidth) paddleX += 7;
-  else if (leftPressed && paddleX > 0) paddleX -= 7;
-
-  x += dx;
-  y += dy;
-  requestAnimationFrame(draw);
-}
-
-function gameOver() {
-  ctx.fillStyle = "white";
-  ctx.font = "30px Arial";
-  ctx.textAlign = "center";
-  ctx.fillText("GAME OVER! Score: " + score, canvas.width / 2, canvas.height / 2);
-}
-
-// ======== Start ========
-document.body.style.cursor = "none"; // hide mouse pointer
-draw();
+  else if (y + dy > canvas.hei
