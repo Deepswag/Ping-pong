@@ -1,24 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Breakout Game</title>
-<link rel="stylesheet" href="style.css" />
+<title>Ping-Pong Brick Game</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="game-container">
-    <canvas id="gameCanvas"></canvas>
 
-    <!-- Popup for Game Over -->
-    <div id="gameOverPopup" class="popup">
-      <div class="popup-content">
-        <h2 id="finalScore">Game Over!</h2>
-        <button id="restartBtn">Restart</button>
-        <button id="exitBtn">Exit</button>
-      </div>
+<div class="game-container">
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- Start button overlay -->
+  <div id="startOverlay" class="overlay">
+    <button id="startBtn">Start Game</button>
+  </div>
+
+  <!-- Game over overlay -->
+  <div id="gameOverOverlay" class="overlay">
+    <div class="popup-content">
+      <h2 id="finalScore">Game Over!</h2>
+      <button id="restartBtn">Restart</button>
+      <button id="exitBtn">Exit</button>
     </div>
   </div>
+</div>
 
 <script src="game.js"></script>
 </body>
