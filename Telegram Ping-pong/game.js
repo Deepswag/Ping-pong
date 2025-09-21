@@ -79,15 +79,25 @@ function drawBricks(){
 }
 function drawScore(){ctx.fillStyle="#ffffff";ctx.font="20px Arial";ctx.fillText("Score: "+score,20,30);}
 function collisionDetection(){
+  let bricksRemaining = 0; // counter for remaining bricks
+
   for(let r=0;r<brickRowCount;r++){
     for(let c=0;c<brickColumnCount;c++){
       const b = bricks[r][c];
-      if(b.status===1 && x>b.x && x<b.x+brickWidth && y>b.y && y<b.y+brickHeight){
-        dy=-dy;
-        b.status=0;
-        score += r+2;
+      if(b.status===1){
+        bricksRemaining++; // count visible bricks
+        if(x>b.x && x<b.x+brickWidth && y>b.y && y<b.y+brickHeight){
+          dy = -dy;
+          b.status = 0;
+          score += r+2; // Row1=2 ... Row7=8
+        }
       }
     }
+  }
+
+  // Check if all bricks are gone
+  if(bricksRemaining === 0){
+    showGameOver();
   }
 }
 
