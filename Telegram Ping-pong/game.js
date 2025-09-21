@@ -18,18 +18,12 @@ function resizeCanvas() {
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
 
-// ======== Ball ========
+// ======== Game Variables ========
 let x, y, dx, dy, ballRadius = 10;
-
-// ======== Paddle ========
 const paddleHeight = 12;
 const paddleWidth = 100;
 let paddleX, rightPressed = false, leftPressed = false;
-
-// ======== Score ========
 let score = 0;
-
-// ======== Bricks ========
 const brickRowCount = 7;
 const brickPadding = 10;
 const brickOffsetTop = 60;
@@ -37,8 +31,6 @@ const brickOffsetLeft = 10;
 const brickHeight = 20;
 let brickColumnCount, brickWidth;
 let bricks = [];
-
-// ======== Game State ========
 let gameRunning = false;
 
 // ======== Init Bricks ========
@@ -166,6 +158,8 @@ function draw(){
 function startGame(){
   startOverlay.style.display = "none";
   gameOverOverlay.style.display = "none";
+
+  // initialize game variables
   score=0;
   x = canvas.width/2;
   y = canvas.height-30;
