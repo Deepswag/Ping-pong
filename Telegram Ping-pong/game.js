@@ -3,9 +3,10 @@ const ctx = canvas.getContext("2d");
 
 // ======== Resize Handling ========
 function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  canvas.width  = window.innerWidth * 0.95;
+  canvas.height = window.innerHeight * 0.75;
 }
+
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
