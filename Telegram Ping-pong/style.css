@@ -17,10 +17,7 @@ html, body {
   margin: auto;
   background: #003366;
   border: 3px solid #ffffff;
-  /* Ensure it scales correctly on all screens */
-  width: 95vw;
-  height: 75vh;
-  cursor: none; /* hide mouse while playing */
+   cursor: none; /* hide mouse while playing */
 }
 
 /* Game Over popup */
