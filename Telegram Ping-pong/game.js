@@ -78,21 +78,6 @@ function drawBricks(){
   }
 }
 
-function drawWatermark() {
-  const blankAreaHeight = canvas.height - (canvas.height - paddleHeight - 10 + paddleHeight + 10); 
-  // simpler: just use area from paddle bottom to canvas bottom
-  const yPosition = canvas.height - (canvas.height - paddleHeight - 10)/2 + paddleHeight/2 + 30;
-
-  ctx.save();
-  ctx.globalAlpha = 0.6; // 60% transparency
-  ctx.fillStyle = "#ffffff";
-  ctx.font = `${Math.floor(canvas.height * 0.2)}px Arial Black`; // size ~20% of canvas height
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText("INQ Labs", canvas.width / 2, canvas.height - ((canvas.height - paddleHeight - 10)/2) );
-  ctx.restore();
-}
-
 function drawScore(){ctx.fillStyle="#ffffff";ctx.font="20px Arial";ctx.fillText("Score: "+score,20,30);}
 function collisionDetection(){
   let bricksRemaining = 0; // counter for remaining bricks
