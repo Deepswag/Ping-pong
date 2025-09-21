@@ -1,16 +1,25 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Ping-Pong Game</title>
-<link rel="stylesheet" href="style.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Breakout Game</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Ping-Pong Game</h1>
-  <canvas id="gameCanvas"></canvas>
-  <p>Use your mouse or finger to move the paddle. Try to keep the ball from falling!</p>
-  <p id="score">Score: 0</p>
-  
-  <script src="game.js"></script>
+  <div class="game-container">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Popup for Game Over -->
+    <div id="gameOverPopup" class="popup">
+      <div class="popup-content">
+        <h2 id="finalScore">Game Over!</h2>
+        <button id="restartBtn">Restart</button>
+        <button id="exitBtn">Exit</button>
+      </div>
+    </div>
+  </div>
+
+<script src="game.js"></script>
 </body>
 </html>
