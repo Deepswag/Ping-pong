@@ -117,10 +117,8 @@ function drawBricks() {
 function drawScore() {
   ctx.fillStyle = "#ffffff";
   ctx.font = "20px Arial";
-  ctx.textAlign = "left";
   ctx.fillText("Score: " + score, 20, 30);
 }
-
 
 // ======== Collision Detection ========
 function collisionDetection() {
@@ -146,17 +144,28 @@ function collisionDetection() {
 
 // ======== Game Loop ========
 function draw() {
-  // paint the deep-blue background first
-  ctx.fillStyle = "#001a66";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   drawBricks();
   drawBall();
   drawPaddle();
-  drawScore();       // score is now drawn over a fresh background
+  drawScore();
   collisionDetection();
-  ...
-}
+
+  // Bounce off side walls
+  if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) dx = -dx;
+  // Bounce off top
+  if (y + dy < ballRadius) dy = -dy;
+  // Paddle hit
+  else if (y + dy > canvas.height - ballRadius - paddleHeight - 10) {
+    if (x > paddleX && x < paddleX + paddleWidth) {
+      dy = -dy;
+      score += 1;
+    } else if (y + dy > canvas.height - ballRadius) {
+      gameOver();
+      return;
+    }
+  }
 
   if (rightPressed && paddleX < canvas.width - paddleWidth) paddleX += 7;
   else if (leftPressed && paddleX > 0) paddleX -= 7;
