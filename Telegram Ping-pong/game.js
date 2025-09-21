@@ -117,8 +117,10 @@ function drawBricks() {
 function drawScore() {
   ctx.fillStyle = "#ffffff";
   ctx.font = "20px Arial";
+  ctx.textAlign = "left";
   ctx.fillText("Score: " + score, 20, 30);
 }
+
 
 // ======== Collision Detection ========
 function collisionDetection() {
