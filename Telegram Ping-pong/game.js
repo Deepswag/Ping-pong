@@ -187,4 +187,5 @@ function draw() {
 }
 
 // ---------- Start Game ----------
-canvas.style.cursor = "none"; // hide cursor during pl
+canvas.style.cursor = "none"; // hide cursor during play
+draw();
