@@ -68,7 +68,7 @@ html, body {
 
 #watermarkText {
   font-family: 'Gill Sans', sans-serif; /* good bold font */
-  font-size: 7vw; /* responsive size relative to screen width */
+  font-size: 6vw; /* responsive size relative to screen width */
   color: #ffffff;
   opacity: 0.6; /* 60% transparent */
 }
