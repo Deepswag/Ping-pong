@@ -19,11 +19,25 @@ let paddleX = (canvas.width - paddleWidth) / 2;
 let x = canvas.width / 2;
 let y = canvas.height - 30;
 let score = 0;
-let gameRunning = true; // flag to stop loop when game ends
+let gameRunning = true;
+
+let rightPressed = false;
+let leftPressed = false;
 
 // ---------- Input ----------
 document.addEventListener("mousemove", mouseMoveHandler, false);
 document.addEventListener("touchmove", touchMoveHandler, false);
+document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
+
+function keyDownHandler(e) {
+  if (e.key === "ArrowRight" || e.key === "Right") rightPressed = true;
+  else if (e.key === "ArrowLeft" || e.key === "Left") leftPressed = true;
+}
+function keyUpHandler(e) {
+  if (e.key === "ArrowRight" || e.key === "Right") rightPressed = false;
+  else if (e.key === "ArrowLeft" || e.key === "Left") leftPressed = false;
+}
 
 function mouseMoveHandler(e) {
   const relativeX = e.clientX - canvas.getBoundingClientRect().left;
@@ -79,6 +93,7 @@ document.body.appendChild(overlay);
 // ---------- Game Over ----------
 function gameOver() {
   gameRunning = false;
+  canvas.style.cursor = "default"; // show cursor again
   message.textContent = `GAME OVER! Final Score: ${score}`;
   overlay.style.display = "flex";
 }
@@ -107,6 +122,7 @@ function resetGame() {
   dx = 2;
   dy = -2;
   canvas.style.display = "block";
+  canvas.style.cursor = "none"; // hide cursor again
 }
 
 // ---------- Drawing ----------
@@ -135,12 +151,19 @@ function drawScore() {
 
 // ---------- Main Loop ----------
 function draw() {
-  if (!gameRunning) return; // stop loop when game is over
+  if (!gameRunning) return;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawBall();
   drawPaddle();
   drawScore();
+
+  // Keyboard movement
+  if (rightPressed && paddleX < canvas.width - paddleWidth) {
+    paddleX += 7;
+  } else if (leftPressed && paddleX > 0) {
+    paddleX -= 7;
+  }
 
   // Ball movement
   x += dx;
@@ -163,4 +186,5 @@ function draw() {
   requestAnimationFrame(draw);
 }
 
-draw();
+// ---------- Start Game ----------
+canvas.style.cursor = "none"; // hide cursor during pl
