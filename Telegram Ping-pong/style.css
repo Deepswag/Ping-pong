@@ -55,3 +55,20 @@ html, body {
   border-radius: 12px;
   text-align: center;
 }
+
+.watermark-container {
+  width: 100%;
+  text-align: center;
+  margin-top: 20px; /* space between canvas and text */
+  height: 20vh; /* 20% of viewport height */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#watermarkText {
+  font-family: 'Arial Black', sans-serif; /* good bold font */
+  font-size: 6vw; /* responsive size relative to screen width */
+  color: #ffffff;
+  opacity: 0.6; /* 60% transparent */
+}
