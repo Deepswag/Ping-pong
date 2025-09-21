@@ -3,10 +3,12 @@ const ctx = canvas.getContext("2d");
 
 // ===== Resize Handling =====
 function resizeCanvas() {
-  canvas.width = canvas.clientWidth;
-  canvas.height = canvas.clientHeight;
+  canvas.width  = window.innerWidth * 0.95;
+  canvas.height = window.innerHeight * 0.75;
   initBricks();
 }
+
+// call once at start
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
