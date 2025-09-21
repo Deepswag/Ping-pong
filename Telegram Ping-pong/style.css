@@ -16,9 +16,8 @@ html, body {
 #gameCanvas {
   display: block;
   margin: auto;
-  background: #001a66;
   border: 3px solid #ffffff;
-  cursor: none; /* hide mouse */
+  cursor: none;
 }
 
 /* Overlay for Start / Game Over */
