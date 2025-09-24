@@ -1,6 +1,6 @@
 {
-  "name": "Fruit Slice Game",
-  "short_name": "FruitGame",
+  "name": "Ping-Pong Game",
+  "short_name": "Ping-Pong",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
