@@ -54,28 +54,28 @@ html, body {
   text-align: center;
 }
 
-/* Overlay dark background */
+/* Overlay: fills the screen with semi-transparent bg */
 .overlay {
+  display: none; /* hidden by default */
   position: absolute;
   top: 0; left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.75);
-  display: flex;
+  background: rgba(0,0,0,0.6);
   justify-content: center;
   align-items: center;
   z-index: 10;
 }
 
-/* Popup box inside overlay */
+/* Popup box: smaller, centered card */
 .popup-box {
   background: #002244;
-  padding: 25px 40px;
+  padding: 25px 35px;
   border-radius: 12px;
   text-align: center;
   border: 2px solid #ff8800;
   color: white;
-  max-width: 300px;
+  max-width: 320px;
   width: 80%; /* responsive */
 }
 
@@ -84,18 +84,17 @@ html, body {
   color: #ffcc00;
 }
 
-.overlay button {
-  padding: 12px 28px;
+.popup-box button {
+  padding: 10px 20px;
   margin: 8px;
-  font-size: 18px;
+  font-size: 16px;
   border: none;
   border-radius: 8px;
   background-color: #ff8800;
   color: white;
   cursor: pointer;
-  transition: background 0.2s ease;
 }
 
-.overlay button:hover {
-  background-color: #ffaa33;
+.popup-box button:hover {
+  background-color: #e67300;
 }
