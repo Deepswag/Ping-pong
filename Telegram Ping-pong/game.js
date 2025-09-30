@@ -44,20 +44,20 @@ let bricks = [];
 function initBricks() {
   const deviceIsMobile = window.innerWidth < 768;
 
-  brickColumnCount = Math.floor((canvas.width - brickOffsetLeft * 2) / 60);
-  brickWidth =
-    (canvas.width - brickOffsetLeft * 2 - (brickColumnCount - 1) * brickPadding) /
-    brickColumnCount;
-
-  brickHeight = BRICK_HEIGHT;
-
   if (deviceIsMobile) {
-    brickWidth *= 0.8;
-    brickHeight *= 0.8;
-    paddleWidth = 100 * 0.8;
-  } else {
-    paddleWidth = 100;
-  }
+  // Smaller bricks on mobile
+  brickColumnCount = Math.floor((canvas.width - brickOffsetLeft * 2) / 50);
+} else {
+  brickColumnCount = Math.floor((canvas.width - brickOffsetLeft * 2) / 70);
+}
+
+brickWidth =
+  (canvas.width - brickOffsetLeft * 2 - (brickColumnCount - 1) * brickPadding) /
+  brickColumnCount;
+
+brickHeight = deviceIsMobile ? BRICK_HEIGHT * 0.8 : BRICK_HEIGHT;
+paddleWidth = deviceIsMobile ? 100 * 0.8 : 100;
+
 
   bricks = [];
   for (let r = 0; r < brickRowCount; r++) {
