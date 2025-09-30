@@ -212,3 +212,7 @@ function endGame() {
 // ======== Button Listeners ========
 document.getElementById("startBtn").addEventListener("click", startGame);
 document.getElementById("restartBtn").addEventListener("click", startGame);
+
+window.onload = () => {
+  document.getElementById("startOverlay").style.display = "flex";
+};
