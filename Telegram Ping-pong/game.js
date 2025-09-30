@@ -1,321 +1,230 @@
-/* game.js - replace existing file */
-(() => {
-  // DOM
-  const canvas = document.getElementById('gameCanvas');
-  const ctx = canvas.getContext('2d');
-  const startOverlay = document.getElementById('startOverlay');
-  const startBtn = document.getElementById('startBtn');
-  const gameOverOverlay = document.getElementById('gameOverOverlay');
-  const finalText = document.getElementById('finalText');
-  const finalSummary = document.getElementById('finalSummary');
-  const restartBtn = document.getElementById('restartBtn');
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 
-  // HUD elements
-  const hudScore = document.getElementById('hud-score');
-  const hudCoins = document.getElementById('hud-coins');
-  const hudTotal = document.getElementById('hud-total');
+// ======== Resize Handling ========
+function resizeCanvas() {
+  canvas.width = window.innerWidth * 0.95;
+  canvas.height = window.innerHeight * 0.75;
+}
+resizeCanvas();
+window.addEventListener("resize", () => {
+  resizeCanvas();
+  initBricks(); // rebuild bricks when resized
+});
 
-  // settings
-  const BASE_PADDLE_WIDTH = 100;
-  const BASE_BRICK_WIDTH_APPROX = 60; // used to compute columns
-  const PADDLE_HEIGHT = 12;
-  const BALL_RADIUS = 10;
-  const BRICK_ROWS = 7;
-  const BRICK_PADDING = 10;
-  const BRICK_OFFSET_TOP = 60;
-  const BRICK_OFFSET_LEFT = 10;
-  const BRICK_HEIGHT = 20;
+// ======== Ball ========
+let x = canvas.width / 2;
+let y = canvas.height - 30;
+let dx, dy;
+const ballRadius = 10;
 
-  // runtime variables
-  let canvasW = 800, canvasH = 480;
-  let deviceIsMobile = false;
+// ======== Paddle ========
+const paddleHeight = 12;
+let paddleWidth = 100;
+let paddleX = (canvas.width - paddleWidth) / 2;
+let rightPressed = false;
+let leftPressed = false;
 
-  // dynamic sizes (will be set in initSizes)
-  let paddleWidth = BASE_PADDLE_WIDTH;
-  let paddleX;
-  let brickColumnCount = 0;
-  let brickWidth = 50;
-  let bricks = [];
+// ======== Score & Coins ========
+let score = 0;
+let coinsEarned = 0;
+let totalCoins = parseFloat(localStorage.getItem("totalCoins")) || 0;
 
-  // ball & movement
-  let x = 0, y = 0, dx = 4, dy = -4;
+// ======== Bricks ========
+const brickRowCount = 7;
+const BRICK_HEIGHT = 20;
+const brickPadding = 10;
+const brickOffsetTop = 60;
+const brickOffsetLeft = 10;
+let brickColumnCount;
+let brickWidth;
+let brickHeight;
+let bricks = [];
 
-  // controls
-  let rightPressed = false, leftPressed = false;
+function initBricks() {
+  // detect mobile
+  const deviceIsMobile = window.innerWidth < 768;
 
-  // game state
-  let gameRunning = false;
-  let score = 0;
+  // base width (60px chunks)
+  brickColumnCount = Math.floor((canvas.width - brickOffsetLeft * 2) / 60);
+  brickWidth =
+    (canvas.width - brickOffsetLeft * 2 - (brickColumnCount - 1) * brickPadding) /
+    brickColumnCount;
 
-  // coins
-  const COINS_PER_100 = 0.25; // as requested
-  // we use proportional calculation: coins = score * (0.25 / 100) = score * 0.0025
+  brickHeight = BRICK_HEIGHT;
 
-  const LOCAL_KEY = 'inq_total_coins';
-
-  // helper: load total coins from localStorage
-  function loadTotalCoins() {
-    const s = localStorage.getItem(LOCAL_KEY);
-    const val = parseFloat(s);
-    return isFinite(val) ? val : 0;
-  }
-  function saveTotalCoins(v) {
-    localStorage.setItem(LOCAL_KEY, String(v));
+  if (deviceIsMobile) {
+    brickWidth *= 0.8;  // reduce both width and height
+    brickHeight *= 0.8;
+    paddleWidth *= 0.8; // also reduce paddle width
   }
 
-  // size init: set canvas pixel size (not CSS) and compute scaled sizes for mobile
-  function initSizes() {
-    // determine viewport size
-    const maxWidth = Math.min(window.innerWidth * 0.95, 1200);
-    const maxHeight = Math.min(window.innerHeight * 0.78, 900);
-    canvas.width = Math.floor(maxWidth);
-    canvas.height = Math.floor(maxHeight);
-    canvasW = canvas.width;
-    canvasH = canvas.height;
-
-    // detect mobile (simple threshold)
-    deviceIsMobile = window.innerWidth <= 768;
-
-    // scale paddle & bricks for mobile
-    if (deviceIsMobile) {
-      paddleWidth = Math.round(BASE_PADDLE_WIDTH * 0.8); // reduce by 20%
-    } else {
-      paddleWidth = BASE_PADDLE_WIDTH;
+  bricks = [];
+  for (let r = 0; r < brickRowCount; r++) {
+    bricks[r] = [];
+    for (let c = 0; c < brickColumnCount; c++) {
+      bricks[r][c] = { x: 0, y: 0, status: 1 };
     }
-
-    // compute columns of bricks to fit with padding
-    const approxCol = Math.floor((canvasW - BRICK_OFFSET_LEFT * 2) / BASE_BRICK_WIDTH_APPROX) || 1;
-    brickColumnCount = approxCol;
-    // if mobile, reduce brick width to fit more (we'll adjust below)
-    let effectiveBrickWidth = (canvasW - BRICK_OFFSET_LEFT * 2 - (brickColumnCount - 1) * BRICK_PADDING) / brickColumnCount;
-    if (deviceIsMobile) effectiveBrickWidth = effectiveBrickWidth * 0.8; // smaller bricks on mobile
-    brickWidth = Math.floor(effectiveBrickWidth);
-
-    // reposition paddle center
-    paddleX = Math.floor((canvasW - paddleWidth) / 2);
   }
+}
+initBricks();
 
-  // build bricks array
-  function initBricks() {
-    bricks = [];
-    for (let r = 0; r < BRICK_ROWS; r++) {
-      bricks[r] = [];
-      for (let c = 0; c < brickColumnCount; c++) {
-        bricks[r][c] = { x: 0, y: 0, status: 1 };
+// ======== Controls ========
+document.addEventListener("keydown", keyDownHandler);
+document.addEventListener("keyup", keyUpHandler);
+document.addEventListener("mousemove", mouseMoveHandler);
+document.addEventListener("touchmove", touchMoveHandler, { passive: false });
+
+function keyDownHandler(e) {
+  if (e.key === "Right" || e.key === "ArrowRight") rightPressed = true;
+  else if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = true;
+}
+function keyUpHandler(e) {
+  if (e.key === "Right" || e.key === "ArrowRight") rightPressed = false;
+  else if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = false;
+}
+function mouseMoveHandler(e) {
+  const relativeX = e.clientX - canvas.getBoundingClientRect().left;
+  if (relativeX > 0 && relativeX < canvas.width) {
+    paddleX = relativeX - paddleWidth / 2;
+  }
+}
+function touchMoveHandler(e) {
+  e.preventDefault();
+  const touchX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+  if (touchX > 0 && touchX < canvas.width) {
+    paddleX = touchX - paddleWidth / 2;
+  }
+}
+
+// ======== Draw Functions ========
+function drawBall() {
+  ctx.beginPath();
+  ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+  ctx.fillStyle = "#ffffff";
+  ctx.fill();
+  ctx.closePath();
+}
+function drawPaddle() {
+  ctx.beginPath();
+  ctx.rect(paddleX, canvas.height - paddleHeight - 10, paddleWidth, paddleHeight);
+  ctx.fillStyle = "#ff8800";
+  ctx.fill();
+  ctx.closePath();
+}
+function drawBricks() {
+  for (let r = 0; r < brickRowCount; r++) {
+    for (let c = 0; c < brickColumnCount; c++) {
+      if (bricks[r][c].status === 1) {
+        const brickX = brickOffsetLeft + c * (brickWidth + brickPadding);
+        const brickY = brickOffsetTop + r * (brickHeight + brickPadding);
+        bricks[r][c].x = brickX;
+        bricks[r][c].y = brickY;
+        ctx.beginPath();
+        ctx.rect(brickX, brickY, brickWidth, brickHeight);
+        ctx.fillStyle = "lightgreen";
+        ctx.fill();
+        ctx.closePath();
       }
     }
   }
+}
 
-  // draw helpers
-  function drawBackground() {
-    ctx.fillStyle = '#001a66';
-    ctx.fillRect(0, 0, canvasW, canvasH);
-  }
-  function drawBall() {
-    ctx.beginPath();
-    ctx.arc(x, y, BALL_RADIUS, 0, Math.PI * 2);
-    ctx.fillStyle = '#ffffff';
-    ctx.fill();
-    ctx.closePath();
-  }
-  function drawPaddle() {
-    ctx.beginPath();
-    ctx.rect(paddleX, canvasH - PADDLE_HEIGHT - 10, paddleWidth, PADDLE_HEIGHT);
-    ctx.fillStyle = '#ff8800';
-    ctx.fill();
-    ctx.closePath();
-  }
-  function drawBricks() {
-    for (let r = 0; r < BRICK_ROWS; r++) {
-      for (let c = 0; c < brickColumnCount; c++) {
-        const b = bricks[r][c];
-        if (b.status === 1) {
-          const bx = BRICK_OFFSET_LEFT + c * (brickWidth + BRICK_PADDING);
-          const by = BRICK_OFFSET_TOP + r * (BRICK_HEIGHT + BRICK_PADDING);
-          b.x = bx; b.y = by;
-          ctx.beginPath();
-          ctx.rect(bx, by, brickWidth, BRICK_HEIGHT);
-          ctx.fillStyle = 'lightgreen';
-          ctx.fill();
-          ctx.closePath();
+// ======== Collision Detection ========
+function collisionDetection() {
+  for (let r = 0; r < brickRowCount; r++) {
+    for (let c = 0; c < brickColumnCount; c++) {
+      const b = bricks[r][c];
+      if (b.status === 1) {
+        if (
+          x > b.x &&
+          x < b.x + brickWidth &&
+          y > b.y &&
+          y < b.y + brickHeight
+        ) {
+          dy = -dy;
+          b.status = 0;
+          score += r + 2;
+          updateHUD();
         }
       }
     }
   }
+}
 
-  // HUD update (separate from canvas)
-  function updateHUD() {
-    hudScore.textContent = String(score);
-    const coins = +(score * 0.0025); // proportional
-    hudCoins.textContent = coins.toFixed(2);
-    const total = loadTotalCoins();
-    hudTotal.textContent = total.toFixed(2);
-  }
+// ======== HUD Update ========
+function updateHUD() {
+  const hudScore = document.getElementById("hudScore");
+  const hudCoins = document.getElementById("hudCoins");
+  const hudTotalCoins = document.getElementById("hudTotalCoins");
 
-  // collisions
-  function collisionDetection() {
-    let bricksRemaining = 0;
-    for (let r = 0; r < BRICK_ROWS; r++) {
-      for (let c = 0; c < brickColumnCount; c++) {
-        const b = bricks[r][c];
-        if (b.status === 1) {
-          bricksRemaining++;
-          // check overlap: center of ball within brick rectangle (simple)
-          if (x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + BRICK_HEIGHT) {
-            dy = -dy;
-            b.status = 0;
-            score += (r + 2); // row-based scoring
-            updateHUD();
-          }
-        }
-      }
+  if (hudScore) hudScore.textContent = score;
+
+  // calculate coins earned this game only at full 100s
+  coinsEarned = Math.floor(score / 100) * 0.25;
+  if (hudCoins) hudCoins.textContent = coinsEarned.toFixed(2);
+  if (hudTotalCoins) hudTotalCoins.textContent = totalCoins.toFixed(2);
+}
+
+// ======== Game Loop ========
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  drawBricks();
+  drawBall();
+  drawPaddle();
+  collisionDetection();
+
+  // Bounce off side walls
+  if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) dx = -dx;
+  // Bounce off top
+  if (y + dy < ballRadius) dy = -dy;
+  // Paddle hit
+  else if (y + dy > canvas.height - ballRadius - paddleHeight - 10) {
+    if (x > paddleX && x < paddleX + paddleWidth) {
+      dy = -dy;
+      score += 1;
+      updateHUD();
+    } else if (y + dy > canvas.height - ballRadius) {
+      endGame();
+      return;
     }
-    // if no bricks left -> game end (win)
-    if (bricksRemaining === 0) {
-      endGame(true);
-    }
   }
 
-  // main loop
-  function loop() {
-    if (!gameRunning) return;
-    drawBackground();
-    drawBricks();
-    drawBall();
-    drawPaddle();
-    collisionDetection();
+  // Paddle movement
+  if (rightPressed && paddleX < canvas.width - paddleWidth) paddleX += 7;
+  else if (leftPressed && paddleX > 0) paddleX -= 7;
 
-    // wall collisions
-    if (x + dx > canvasW - BALL_RADIUS || x + dx < BALL_RADIUS) dx = -dx;
-    if (y + dy < BALL_RADIUS) dy = -dy;
-    else if (y + dy > canvasH - BALL_RADIUS - PADDLE_HEIGHT - 10) {
-      if (x > paddleX && x < paddleX + paddleWidth) {
-        dy = -Math.abs(dy); // reflect up
-        score += 1;         // paddle hit = 1 point
-        updateHUD();
-      } else if (y + dy > canvasH - BALL_RADIUS) {
-        endGame(false); // missed paddle
-        return;
-      }
-    }
-
-    // keyboard paddle movement
-    if (rightPressed && paddleX < canvasW - paddleWidth) paddleX += 7;
-    else if (leftPressed && paddleX > 0) paddleX -= 7;
-
-    x += dx;
-    y += dy;
-    requestAnimationFrame(loop);
+  // Check win (all bricks cleared)
+  if (bricks.flat().every(b => b.status === 0)) {
+    endGame();
+    return;
   }
 
-  // start & restart
-  function startGame() {
-    // ensure sizes & bricks initialized
-    initSizes();
-    initBricks();
+  x += dx;
+  y += dy;
+  requestAnimationFrame(draw);
+}
 
-    // reset
-    score = 0;
-    updateHUD();
+// ======== Game Start & End ========
+function startGame() {
+  score = 0;
+  coinsEarned = 0;
+  x = canvas.width / 2;
+  y = canvas.height - 30;
+  dx = Math.random() > 0.5 ? 4 : -4; // random initial direction
+  dy = -4;
+  paddleX = (canvas.width - paddleWidth) / 2;
+  initBricks();
+  updateHUD();
+  requestAnimationFrame(draw);
+}
 
-    // ball start - random horizontal direction
-    x = canvasW / 2;
-    y = canvasH - 40;
-    const speed = 4;
-    dx = (Math.random() < 0.5 ? -1 : 1) * (speed + Math.random() * 1.2); // randomize a bit
-    dy = -Math.abs(speed + Math.random() * 0.8);
+function endGame() {
+  totalCoins += coinsEarned;
+  localStorage.setItem("totalCoins", totalCoins.toFixed(2));
 
-    paddleX = Math.round((canvasW - paddleWidth) / 2);
-
-    // show/hide overlays
-    startOverlay.classList.add('hidden');
-    gameOverOverlay.classList.add('hidden');
-
-    // hide mouse pointer when playing
-    canvas.style.cursor = 'none';
-
-    gameRunning = true;
-    loop();
-  }
-
-  // end game handler (win true if cleared bricks, false if missed)
-  function endGame(win) {
-    gameRunning = false;
-
-    // compute coins earned for session proportional: score * 0.0025
-    const coinsEarned = +(score * 0.0025);
-    const prev = loadTotalCoins();
-    const newTotal = +(prev + coinsEarned);
-
-    // persist
-    saveTotalCoins(newTotal);
-
-    // show final overlay
-    finalText.textContent = win ? 'You Win!' : 'Game Over';
-    finalSummary.innerHTML = `
-      <div style="margin:6px 0;">Score: <strong>${score}</strong></div>
-      <div style="margin:6px 0;">Coins earned: <strong>${coinsEarned.toFixed(2)}</strong></div>
-      <div style="margin:6px 0;">Total Coins: <strong>${newTotal.toFixed(2)}</strong></div>
-    `;
-    // update HUD total now that we've saved
-    updateHUD();
-    gameOverOverlay.classList.remove('hidden');
-
-    // show mouse pointer in overlay
-    canvas.style.cursor = 'default';
-  }
-
-  // keyboard & touch handlers
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight' || e.key === 'Right') rightPressed = true;
-    else if (e.key === 'ArrowLeft' || e.key === 'Left') leftPressed = true;
-  });
-  window.addEventListener('keyup', (e) => {
-    if (e.key === 'ArrowRight' || e.key === 'Right') rightPressed = false;
-    else if (e.key === 'ArrowLeft' || e.key === 'Left') leftPressed = false;
-  });
-
-  canvas.addEventListener('mousemove', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const rel = e.clientX - rect.left;
-    if (rel > 0 && rel < canvasW) paddleX = rel - paddleWidth / 2;
-  });
-
-  canvas.addEventListener('touchmove', (e) => {
-    if (!e.touches || !e.touches[0]) return;
-    const rect = canvas.getBoundingClientRect();
-    const rel = e.touches[0].clientX - rect.left;
-    if (rel > 0 && rel < canvasW) paddleX = rel - paddleWidth / 2;
-    e.preventDefault();
-  }, { passive:false });
-
-  // UI buttons
-  startBtn.addEventListener('click', startGame);
-  restartBtn.addEventListener('click', startGame);
-
-  // initial HUD load
-  (function init() {
-    initSizes();
-    initBricks();
-    // ensure HUD total loads from localStorage
-    const tot = loadTotalCoins();
-    hudTotal.textContent = tot.toFixed(2);
-    hudScore.textContent = '0';
-    hudCoins.textContent = '0.00';
-    // show start overlay (ensure visible)
-    startOverlay.classList.remove('hidden');
-    gameOverOverlay.classList.add('hidden');
-  })();
-
-  // handle resize dynamically while not playing: adjust canvas CSS pixel size
-  window.addEventListener('resize', () => {
-    // if game running, we will not interrupt; on next start sizes will be recalculated
-    if (!gameRunning) {
-      initSizes();
-      initBricks();
-      // redraw a static preview so page not blank
-      drawBackground();
-      drawBricks();
-    }
-  });
-})();
+  document.getElementById("finalScore").textContent =
+    `Game Over! Score: ${score} | Coins: ${coinsEarned.toFixed(2)} | Total Coins: ${totalCoins.toFixed(2)}`;
+  document.getElementById("gameOverOverlay").style.display = "flex";
+}
